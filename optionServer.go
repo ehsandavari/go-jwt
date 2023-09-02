@@ -18,7 +18,6 @@ func (f optionServerFunc) apply(_jwt *sJwtServer) {
 func WithIssuer(issuer string) OptionServer {
 	return optionServerFunc(func(_jwt *sJwtServer) {
 		_jwt.claims.Issuer = issuer
-		_jwt.expectedIssuer = issuer
 	})
 }
 

@@ -1,45 +1,76 @@
 package jwt
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"net/http"
+	"strings"
 )
 
 //go:generate mockgen -destination=./mocks/jwtClient.go -package=mocks github.com/ehsandavari/go-jwt IJwtClient
 
 type IJwtClient interface {
-	VerifyToken(token, audience string) (bool, error)
+	VerifyToken(token, audience, issuer string) (bool, error)
+	GinMiddleware() gin.HandlerFunc
 	IClaims
 }
 
 type sJwtClient struct {
-	publicKey      any
-	expectedIssuer string
-	claims         sClaims
+	publicKey any
+	claims    sClaims
 }
 
-func NewJwtClient(publicKey string, options ...OptionClient) IJwtClient {
+func NewJwtClient(publicKey string) IJwtClient {
 	_jwtClient := &sJwtClient{
 		publicKey: publicKey,
-	}
-
-	for _, option := range options {
-		option.apply(_jwtClient)
 	}
 
 	return _jwtClient
 }
 
-func (r *sJwtClient) VerifyToken(token string, audience string) (bool, error) {
+func (r *sJwtClient) VerifyToken(token, audience, issuer string) (bool, error) {
 	parse, err := jwt.ParseWithClaims(token, &r.claims, func(token *jwt.Token) (any, error) {
 		if err := r.parser(token.Method); err != nil {
 			return nil, err
 		}
 		return r.publicKey, nil
-	}, jwt.WithIssuedAt(), jwt.WithAudience(audience), jwt.WithIssuer(r.expectedIssuer))
+	}, jwt.WithIssuedAt(), jwt.WithAudience(audience), jwt.WithIssuer(issuer))
 	if err != nil {
 		return false, err
 	}
 	return parse.Valid, nil
+}
+
+func (r *sJwtClient) GinMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		authorization := ctx.GetHeader("authorization")
+		if len(authorization) == 0 {
+			ctx.Status(http.StatusUnauthorized)
+			return
+		}
+
+		token := strings.TrimPrefix(authorization, "Bearer ")
+		if token == authorization {
+			ctx.Status(http.StatusUnauthorized)
+			return
+		}
+
+		valid, err := r.VerifyToken(token, "", "")
+		if err != nil {
+			ctx.Status(http.StatusUnauthorized)
+			return
+		}
+
+		if !valid {
+			ctx.Status(http.StatusUnauthorized)
+			return
+		}
+		ctx.Set(ContextKeyUserID, r.GetUserId())
+		ctx.Set(ContextKeyEmail, r.GetEmail())
+		ctx.Set(ContextKeyEmailVerified, r.GetEmailVerified())
+		ctx.Set(ContextKeyPhoneNumber, r.GetPhoneNumber())
+		ctx.Set(ContextKeyPhoneNumberVerified, r.GetPhoneNumberVerified())
+	}
 }
 
 func (r *sJwtClient) parser(method jwt.SigningMethod) (err error) {
