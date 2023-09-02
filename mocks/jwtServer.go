@@ -8,6 +8,7 @@ import (
 	reflect "reflect"
 
 	jwt "github.com/ehsandavari/go-jwt"
+	gin "github.com/gin-gonic/gin"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -35,10 +36,10 @@ func (m *MockIJwtServer) EXPECT() *MockIJwtServerMockRecorder {
 }
 
 // GenerateToken mocks base method.
-func (m *MockIJwtServer) GenerateToken(arg0 ...jwt.OptionServer) (string, error) {
+func (m *MockIJwtServer) GenerateToken(arg0 string, arg1 ...jwt.OptionServer) (string, error) {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{}
-	for _, a := range arg0 {
+	varargs := []interface{}{arg0}
+	for _, a := range arg1 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GenerateToken", varargs...)
@@ -48,9 +49,10 @@ func (m *MockIJwtServer) GenerateToken(arg0 ...jwt.OptionServer) (string, error)
 }
 
 // GenerateToken indicates an expected call of GenerateToken.
-func (mr *MockIJwtServerMockRecorder) GenerateToken(arg0 ...interface{}) *gomock.Call {
+func (mr *MockIJwtServerMockRecorder) GenerateToken(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateToken", reflect.TypeOf((*MockIJwtServer)(nil).GenerateToken), arg0...)
+	varargs := append([]interface{}{arg0}, arg1...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateToken", reflect.TypeOf((*MockIJwtServer)(nil).GenerateToken), varargs...)
 }
 
 // GetEmail mocks base method.
@@ -137,17 +139,31 @@ func (mr *MockIJwtServerMockRecorder) GetUserId() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserId", reflect.TypeOf((*MockIJwtServer)(nil).GetUserId))
 }
 
-// VerifyToken mocks base method.
-func (m *MockIJwtServer) VerifyToken(arg0, arg1 string) (bool, error) {
+// GinMiddleware mocks base method.
+func (m *MockIJwtServer) GinMiddleware() gin.HandlerFunc {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyToken", arg0, arg1)
+	ret := m.ctrl.Call(m, "GinMiddleware")
+	ret0, _ := ret[0].(gin.HandlerFunc)
+	return ret0
+}
+
+// GinMiddleware indicates an expected call of GinMiddleware.
+func (mr *MockIJwtServerMockRecorder) GinMiddleware() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GinMiddleware", reflect.TypeOf((*MockIJwtServer)(nil).GinMiddleware))
+}
+
+// VerifyToken mocks base method.
+func (m *MockIJwtServer) VerifyToken(arg0, arg1, arg2 string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyToken", arg0, arg1, arg2)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // VerifyToken indicates an expected call of VerifyToken.
-func (mr *MockIJwtServerMockRecorder) VerifyToken(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockIJwtServerMockRecorder) VerifyToken(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyToken", reflect.TypeOf((*MockIJwtServer)(nil).VerifyToken), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyToken", reflect.TypeOf((*MockIJwtServer)(nil).VerifyToken), arg0, arg1, arg2)
 }
