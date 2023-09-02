@@ -66,10 +66,14 @@ func (r *sJwtClient) GinMiddleware() gin.HandlerFunc {
 			return
 		}
 		ctx.Set(ContextKeyUserID, r.GetUserId())
-		ctx.Set(ContextKeyEmail, r.GetEmail())
-		ctx.Set(ContextKeyEmailVerified, r.GetEmailVerified())
-		ctx.Set(ContextKeyPhoneNumber, r.GetPhoneNumber())
-		ctx.Set(ContextKeyPhoneNumberVerified, r.GetPhoneNumberVerified())
+		if len(r.GetEmail()) != 0 {
+			ctx.Set(ContextKeyEmail, r.GetEmail())
+			ctx.Set(ContextKeyEmailVerified, r.GetEmailVerified())
+		}
+		if len(r.GetPhoneNumber()) != 0 {
+			ctx.Set(ContextKeyPhoneNumber, r.GetPhoneNumber())
+			ctx.Set(ContextKeyPhoneNumberVerified, r.GetPhoneNumberVerified())
+		}
 	}
 }
 
