@@ -8,7 +8,7 @@ import (
 //go:generate mockgen -destination=./mocks/jwtServer.go -package=mocks github.com/ehsandavari/go-jwt IJwtServer
 
 type IJwtServer interface {
-	GenerateToken(options ...OptionServer) (string, error)
+	GenerateToken(userId string, options ...OptionServer) (string, error)
 	IJwtClient
 }
 
@@ -36,11 +36,12 @@ func NewJwtServer(algorithm, publicKey, privateKey string, options ...OptionServ
 	return _jwt
 }
 
-func (r *sJwtServer) GenerateToken(options ...OptionServer) (string, error) {
+func (r *sJwtServer) GenerateToken(userId string, options ...OptionServer) (string, error) {
 	for _, option := range options {
 		option.apply(r)
 	}
 
+	r.claims.Subject = userId
 	r.jwt.Claims = r.claims
 
 	signingString, err := r.jwt.SignedString(r.privateKey)

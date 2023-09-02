@@ -27,12 +27,6 @@ func WithAudience(audience ...string) OptionServer {
 	})
 }
 
-func WithUserId(subject string) OptionServer {
-	return optionServerFunc(func(_jwt *sJwtServer) {
-		_jwt.claims.Subject = subject
-	})
-}
-
 func WithExpiresAt(expiresAt time.Time) OptionServer {
 	return optionServerFunc(func(_jwt *sJwtServer) {
 		_jwt.claims.ExpiresAt = jwt.NewNumericDate(expiresAt)
