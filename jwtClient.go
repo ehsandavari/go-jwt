@@ -12,7 +12,7 @@ type IJwtClient interface {
 }
 
 type sJwtClient struct {
-	publicKey any
+	publicKey string
 	claims    sClaims
 }
 
@@ -26,10 +26,11 @@ func NewJwtClient(publicKey string) IJwtClient {
 
 func (r *sJwtClient) VerifyToken(token, audience, issuer string) (bool, error) {
 	parse, err := jwt.ParseWithClaims(token, &r.claims, func(token *jwt.Token) (any, error) {
-		if err := r.parser(token.Method); err != nil {
+		publicKey, err := r.parser(token.Method)
+		if err != nil {
 			return nil, err
 		}
-		return r.publicKey, nil
+		return publicKey, nil
 	}, jwt.WithIssuedAt(), jwt.WithAudience(audience), jwt.WithIssuer(issuer))
 	if err != nil {
 		return false, err
@@ -37,24 +38,24 @@ func (r *sJwtClient) VerifyToken(token, audience, issuer string) (bool, error) {
 	return parse.Valid, nil
 }
 
-func (r *sJwtClient) parser(method jwt.SigningMethod) (err error) {
+func (r *sJwtClient) parser(method jwt.SigningMethod) (publicKey any, err error) {
 	switch method.(type) {
 	case *jwt.SigningMethodHMAC:
-		r.publicKey = []byte(r.publicKey.(string))
+		publicKey = []byte(r.publicKey)
 	case *jwt.SigningMethodRSA, *jwt.SigningMethodRSAPSS:
-		if r.publicKey, err = jwt.ParseRSAPublicKeyFromPEM([]byte(r.publicKey.(string))); err != nil {
-			return err
+		if publicKey, err = jwt.ParseRSAPublicKeyFromPEM([]byte(r.publicKey)); err != nil {
+			return nil, err
 		}
 	case *jwt.SigningMethodECDSA:
-		if r.publicKey, err = jwt.ParseECPublicKeyFromPEM([]byte(r.publicKey.(string))); err != nil {
-			return err
+		if publicKey, err = jwt.ParseECPublicKeyFromPEM([]byte(r.publicKey)); err != nil {
+			return nil, err
 		}
 	case *jwt.SigningMethodEd25519:
-		if r.publicKey, err = jwt.ParseEdPublicKeyFromPEM([]byte(r.publicKey.(string))); err != nil {
-			return err
+		if publicKey, err = jwt.ParseEdPublicKeyFromPEM([]byte(r.publicKey)); err != nil {
+			return nil, err
 		}
 	default:
-		return ErrInvalidMethod
+		return nil, ErrInvalidMethod
 	}
-	return nil
+	return publicKey, nil
 }
