@@ -1,8 +1,10 @@
 package jwt
 
 import (
+	contextplus "github.com/ehsandavari/go-context-plus"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"net/http"
 	"strings"
 )
@@ -11,7 +13,7 @@ import (
 
 type IJwtClient interface {
 	VerifyToken(token, audience, issuer string) (bool, error)
-	GinMiddleware() gin.HandlerFunc
+	GinMiddleware(ctx *contextplus.Context) gin.HandlerFunc
 	IClaims
 }
 
@@ -41,38 +43,39 @@ func (r *sJwtClient) VerifyToken(token, audience, issuer string) (bool, error) {
 	return parse.Valid, nil
 }
 
-func (r *sJwtClient) GinMiddleware() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		authorization := ctx.GetHeader("authorization")
+func (r *sJwtClient) GinMiddleware(ctx *contextplus.Context) gin.HandlerFunc {
+	return func(ctxGin *gin.Context) {
+		authorization := ctxGin.GetHeader("authorization")
 		if len(authorization) == 0 {
-			ctx.Status(http.StatusUnauthorized)
+			ctxGin.Status(http.StatusUnauthorized)
 			return
 		}
 
 		token := strings.TrimPrefix(authorization, "Bearer ")
 		if token == authorization {
-			ctx.Status(http.StatusUnauthorized)
+			ctxGin.Status(http.StatusUnauthorized)
 			return
 		}
 
 		valid, err := r.VerifyToken(token, "", "")
 		if err != nil {
-			ctx.Status(http.StatusUnauthorized)
+			ctxGin.Status(http.StatusUnauthorized)
 			return
 		}
 
 		if !valid {
-			ctx.Status(http.StatusUnauthorized)
+			ctxGin.Status(http.StatusUnauthorized)
 			return
 		}
-		ctx.Set(ContextKeyUserID, r.GetUserId())
+
+		ctx.User.SetId(uuid.MustParse(r.GetUserId()))
 		if len(r.GetEmail()) != 0 {
-			ctx.Set(ContextKeyEmail, r.GetEmail())
-			ctx.Set(ContextKeyEmailVerified, r.GetEmailVerified())
+			ctx.User.SetEmail(r.GetEmail())
+			ctx.User.SetEmailVerified(r.GetEmailVerified())
 		}
 		if len(r.GetPhoneNumber()) != 0 {
-			ctx.Set(ContextKeyPhoneNumber, r.GetPhoneNumber())
-			ctx.Set(ContextKeyPhoneNumberVerified, r.GetPhoneNumberVerified())
+			ctx.User.SetPhoneNumber(r.GetPhoneNumber())
+			ctx.User.SetPhoneNumberVerified(r.GetPhoneNumberVerified())
 		}
 	}
 }
