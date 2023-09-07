@@ -1,19 +1,13 @@
 package jwt
 
 import (
-	contextplus "github.com/ehsandavari/go-context-plus"
-	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
-	"net/http"
-	"strings"
 )
 
 //go:generate mockgen -destination=./mocks/jwtClient.go -package=mocks github.com/ehsandavari/go-jwt IJwtClient
 
 type IJwtClient interface {
 	VerifyToken(token, audience, issuer string) (bool, error)
-	GinMiddleware(ctx *contextplus.Context) gin.HandlerFunc
 	IClaims
 }
 
@@ -41,43 +35,6 @@ func (r *sJwtClient) VerifyToken(token, audience, issuer string) (bool, error) {
 		return false, err
 	}
 	return parse.Valid, nil
-}
-
-func (r *sJwtClient) GinMiddleware(ctx *contextplus.Context) gin.HandlerFunc {
-	return func(ctxGin *gin.Context) {
-		authorization := ctxGin.GetHeader("authorization")
-		if len(authorization) == 0 {
-			ctxGin.Status(http.StatusUnauthorized)
-			return
-		}
-
-		token := strings.TrimPrefix(authorization, "Bearer ")
-		if token == authorization {
-			ctxGin.Status(http.StatusUnauthorized)
-			return
-		}
-
-		valid, err := r.VerifyToken(token, "", "")
-		if err != nil {
-			ctxGin.Status(http.StatusUnauthorized)
-			return
-		}
-
-		if !valid {
-			ctxGin.Status(http.StatusUnauthorized)
-			return
-		}
-
-		ctx.User.SetId(uuid.MustParse(r.GetUserId()))
-		if len(r.GetEmail()) != 0 {
-			ctx.User.SetEmail(r.GetEmail())
-			ctx.User.SetEmailVerified(r.GetEmailVerified())
-		}
-		if len(r.GetPhoneNumber()) != 0 {
-			ctx.User.SetPhoneNumber(r.GetPhoneNumber())
-			ctx.User.SetPhoneNumberVerified(r.GetPhoneNumberVerified())
-		}
-	}
 }
 
 func (r *sJwtClient) parser(method jwt.SigningMethod) (err error) {
