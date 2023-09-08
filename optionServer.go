@@ -51,26 +51,22 @@ func WithID(id string) OptionServer {
 	})
 }
 
-func WithEmail(email string) OptionServer {
+func WithEmail(email string, emailVerified bool) OptionServer {
 	return optionServerFunc(func(_jwt *sJwtServer) {
+		if len(email) == 0 {
+			return
+		}
 		_jwt.claims.Email = email
-	})
-}
-
-func WithEmailVerified(emailVerified bool) OptionServer {
-	return optionServerFunc(func(_jwt *sJwtServer) {
 		_jwt.claims.EmailVerified = &emailVerified
 	})
 }
 
-func WithPhoneNumber(phoneNumber string) OptionServer {
+func WithPhoneNumber(phoneNumber string, phoneNumberVerified bool) OptionServer {
 	return optionServerFunc(func(_jwt *sJwtServer) {
+		if len(phoneNumber) == 0 {
+			return
+		}
 		_jwt.claims.PhoneNumber = phoneNumber
-	})
-}
-
-func WithPhoneNumberVerified(phoneNumberVerified bool) OptionServer {
-	return optionServerFunc(func(_jwt *sJwtServer) {
 		_jwt.claims.PhoneNumberVerified = &phoneNumberVerified
 	})
 }
