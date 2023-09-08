@@ -3,7 +3,6 @@ module github.com/ehsandavari/go-jwt
 go 1.21
 
 require (
-	github.com/ehsandavari/go-context-plus v1.0.2
 	github.com/gin-gonic/gin v1.9.1
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/google/uuid v1.3.1
