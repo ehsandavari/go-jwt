@@ -17,16 +17,28 @@ func main() {
 		jwt.WithNotBefore(time.Now()),
 		jwt.WithIssuedAt(time.Now()),
 		jwt.WithID("asdlmksfkdfmaksdfmaskld"),
-		jwt.WithEmail("ehsandavari.ir@gmail.com"),
-		jwt.WithEmailVerified(false),
-		jwt.WithPhoneNumber("09215580690"),
-		jwt.WithPhoneNumberVerified(true),
 	)
-	token, err := _jwtServer.GenerateToken(uuid.New().String())
+	token, err := _jwtServer.GenerateToken(
+		uuid.New().String(),
+		jwt.WithEmail("ehsandavari.ir@gmail.com", false),
+		jwt.WithPhoneNumber("09215580690", true),
+	)
 	if err != nil {
 		panic(err)
 	}
 	println(token)
+
+	token, err = _jwtServer.GenerateToken(
+		uuid.New().String(),
+		jwt.WithEmail("", false),
+		jwt.WithPhoneNumber("09215580690", true),
+	)
+	if err != nil {
+		panic(err)
+	}
+	println(token)
+
+	// verify
 	verifyToken, err := _jwtServer.VerifyToken(token, "api1", "WithIssuer")
 	if err != nil {
 		panic(err)

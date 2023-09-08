@@ -54,6 +54,8 @@ func WithID(id string) OptionServer {
 func WithEmail(email string, emailVerified bool) OptionServer {
 	return optionServerFunc(func(_jwt *sJwtServer) {
 		if len(email) == 0 {
+			_jwt.claims.Email = ""
+			_jwt.claims.EmailVerified = nil
 			return
 		}
 		_jwt.claims.Email = email
@@ -64,6 +66,8 @@ func WithEmail(email string, emailVerified bool) OptionServer {
 func WithPhoneNumber(phoneNumber string, phoneNumberVerified bool) OptionServer {
 	return optionServerFunc(func(_jwt *sJwtServer) {
 		if len(phoneNumber) == 0 {
+			_jwt.claims.PhoneNumber = ""
+			_jwt.claims.PhoneNumberVerified = nil
 			return
 		}
 		_jwt.claims.PhoneNumber = phoneNumber
