@@ -74,3 +74,13 @@ func WithPhoneNumber(phoneNumber string, phoneNumberVerified bool) OptionServer 
 		_jwt.claims.PhoneNumberVerified = &phoneNumberVerified
 	})
 }
+
+func WithRules(rules map[string][]string) OptionServer {
+	return optionServerFunc(func(_jwt *sJwtServer) {
+		if len(rules) == 0 {
+			_jwt.claims.Rules = nil
+			return
+		}
+		_jwt.claims.Rules = rules
+	})
+}

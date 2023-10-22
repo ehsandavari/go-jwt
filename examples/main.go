@@ -32,6 +32,14 @@ func main() {
 		uuid.New().String(),
 		jwt.WithEmail("", false),
 		jwt.WithPhoneNumber("09215580690", true),
+		jwt.WithRules(map[string][]string{
+			"test-service": {
+				"create",
+				"read",
+				"update",
+				"delete",
+			},
+		}),
 	)
 	if err != nil {
 		panic(err)
@@ -54,5 +62,10 @@ func main() {
 		panic(err)
 	}
 	println(verifyToken)
+	println(_jwtClient.CheckRule("test-service1", "update1"))
+	println(_jwtClient.CheckRule("test-service1", "update"))
+	println(_jwtClient.CheckRule("test-service", "update1"))
+	println(_jwtClient.CheckRule("test-service", "update"))
+	println(_jwtClient.CheckRule("test-service", "delete"))
 	println(_jwtClient.GetEmail())
 }

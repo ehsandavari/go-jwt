@@ -25,16 +25,24 @@ func NewJwtClient(publicKey string) IJwtClient {
 }
 
 func (r *sJwtClient) VerifyToken(token, audience, issuer string) (bool, error) {
-	parse, err := jwt.ParseWithClaims(token, &r.claims, func(token *jwt.Token) (any, error) {
-		publicKey, err := r.parser(token.Method)
-		if err != nil {
-			return nil, err
-		}
-		return publicKey, nil
-	}, jwt.WithIssuedAt(), jwt.WithAudience(audience), jwt.WithIssuer(issuer))
+	parse, err := jwt.ParseWithClaims(
+		token,
+		&r.claims,
+		func(token *jwt.Token) (any, error) {
+			publicKey, err := r.parser(token.Method)
+			if err != nil {
+				return nil, err
+			}
+			return publicKey, nil
+		},
+		jwt.WithIssuedAt(),
+		jwt.WithAudience(audience),
+		jwt.WithIssuer(issuer),
+	)
 	if err != nil {
 		return false, err
 	}
+
 	return parse.Valid, nil
 }
 
